@@ -1,28 +1,59 @@
-name: Test and Deploy
+name: Test and Deploy to Vercel
 
-on: 
+on:
   push:
+    branches: [ main ]  # Runs only on pushes to main branch
 
 jobs:
-  build:
+  test:
+    name: Run Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Run Tests
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Verify files
         run: |
-          npm install
-          npm test
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+          ls -la
+          echo "Checking for package.json..."
+          if [ ! -f "package.json" ]; then
+            echo "Error: package.json not found!"
+            exit 1
+          fi
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: 20
-      - run: npm install
-      - name: Deploy to Vercel
-        run: npx vercel --token ${{ secrets.VERCEL_TOKEN }} --prod --confirm
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci  # Uses package-lock.json for exact versions
+        
+      - name: Run tests
+        run: npm test
         env:
+          CI: true  # Important for test runners in CI environment
+
+  deploy:
+    name: Deploy to Vercel
+    needs: test  # Only runs if tests pass
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Deploy to Vercel
+        run: npx vercel --prod --confirm
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
