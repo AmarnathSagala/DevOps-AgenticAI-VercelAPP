@@ -7,6 +7,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v3
 
@@ -19,18 +20,16 @@ jobs:
       - name: Install Vercel CLI globally
         run: npm install -g vercel@latest
 
+      - name: Link Vercel Project
+        run: vercel link --token ${{ secrets.VERCEL_TOKEN }} --yes --project ${{ secrets.VERCEL_PROJECT_ID }} --scope ${{ secrets.VERCEL_ORG_ID }}
+
       - name: Deploy to Production
-        run: |
-          npx vercel deploy --prod --token ${{ secrets.VERCEL_TOKEN }} --yes --scope ${{ secrets.VERCEL_ORG_ID }}
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: vercel deploy --prod --token ${{ secrets.VERCEL_TOKEN }} --yes
 
       - name: Get Deployment URL
         id: vercel
         run: |
-          DEPLOYMENT_URL=$(npx vercel --token ${{ secrets.VERCEL_TOKEN }} --prod --yes --scope ${{ secrets.VERCEL_ORG_ID }} --json | jq -r '.url')
+          DEPLOYMENT_URL=$(vercel --token ${{ secrets.VERCEL_TOKEN }} --prod --yes --scope ${{ secrets.VERCEL_ORG_ID }} --json | jq -r '.url')
           echo "url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
           echo "Deployed to: $DEPLOYMENT_URL"
 
