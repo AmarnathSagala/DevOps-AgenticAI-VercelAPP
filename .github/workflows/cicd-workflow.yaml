@@ -1,25 +1,31 @@
 name: CI/CD Pipeline
-on: push
+
+on:
+  push:
+    branches: [ main ]
 
 jobs:
-  validate:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Validate JSON
-        run: |
-          # Check for hidden characters
-          cat package.json | hexdump -C
-          # Validate JSON syntax
-          node -e "require('./package.json')"
-          
   deploy:
-    needs: validate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: 20
       - run: npm install
-      - run: npx vercel --prod --token ${{ secrets.VERCEL_TOKEN }}
+      - run: npm test
+          
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+        
+      - name: Deploy to Vercel
+        run: |
+          npx vercel deploy --prod --token ${{ secrets.VERCEL_TOKEN }} --yes
+          DEPLOYMENT_URL=$(npx vercel --token ${{ secrets.VERCEL_TOKEN }} --prod --yes --json | jq -r '.url')
+          echo "DEPLOYMENT_URL=${DEPLOYMENT_URL}" >> $GITHUB_ENV
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
