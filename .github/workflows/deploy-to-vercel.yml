@@ -33,7 +33,7 @@ jobs:
 
       - name: Pull Vercel project settings
         run: |
-          vercel pull --yes --environment=production --token $VERCEL_TOKEN
+          vercel pull --yes --environment=production --token $VERCEL_TOKEN --org $VERCEL-ORG-ID --project $VERCEL_PROJECT_ID
 
       - name: Deploy to Vercel
         run: |
