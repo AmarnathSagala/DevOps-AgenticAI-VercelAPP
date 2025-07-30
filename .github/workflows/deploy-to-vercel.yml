@@ -32,7 +32,5 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          # Ensure Vercel uses your project settings
           vercel pull --yes --environment=production
-          # Deploy current HEAD to production
           vercel --prod --token $VERCEL_TOKEN --org $VERCEL_ORG_ID --project $VERCEL_PROJECT_ID --confirm
