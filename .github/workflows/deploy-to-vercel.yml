@@ -10,14 +10,12 @@ jobs:
     runs-on: ubuntu-latest
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js (if needed)
         uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -30,7 +28,13 @@ jobs:
 
       - name: Install Vercel CLI
         run: npm install -g vercel@latest
-        
+
+      # Option A: If .vercel/project.json already exists in your repo linking to the right org/project
       - name: Deploy to Vercel
-        run: |
-          vercel --prod --confirm --token $VERCEL_TOKEN
+        run: vercel --prod --confirm --token $VERCEL_TOKEN
+
+      # Option B: If you need to link explicitly each time (uncomment to use)
+      # - name: Link to your Vercel Project
+      #   run: vercel link --yes --token $VERCEL_TOKEN --project-id ${{ secrets.VERCEL_PROJECT_ID }} --scope ${{ secrets.VERCEL_ORG_ID }}
+      # - name: Deploy to Vercel
+      #   run: vercel --prod --confirm --token $VERCEL_TOKEN
