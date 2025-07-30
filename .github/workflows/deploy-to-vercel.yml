@@ -1,36 +1,47 @@
-# File: .github/workflows/deploy-to-vercel.yml
 name: Deploy to Vercel on Push
 
 on:
   push:
     branches:
-      - main
+      - vercel-website
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
     steps:
-      # 1. Checkout your repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Setup Node.js (required by Vercel CLI)
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      # 3. Install Vercel CLI globally
+      - name: Install dependencies
+        run: npm install || echo "No dependencies to install"
+
+      - name: Build project
+        run: npm run build || echo "No build step defined"
+
       - name: Install Vercel CLI
         run: npm install -g vercel@latest
 
-      # 4. Deploy to Vercel
-      - name: Deploy to Vercel
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      - name: Pull Vercel project settings
         run: |
-          vercel pull --yes --environment=production
-          vercel --prod --token $VERCEL_TOKEN --org $VERCEL_ORG_ID --project $VERCEL_PROJECT_ID --confirm
+          vercel pull --yes \
+            --environment=production \
+            --token $VERCEL_TOKEN \
+            --org $VERCEL_ORG_ID \
+            --project $VERCEL_PROJECT_ID
+
+      - name: Deploy to Vercel
+        run: |
+          vercel --prod --confirm \
+            --token $VERCEL_TOKEN \
+            --org $VERCEL_ORG_ID \
+            --project $VERCEL_PROJECT_ID
